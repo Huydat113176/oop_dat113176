@@ -686,6 +686,3 @@ int main() {
 
     return 0;
 }
-```
-
-Luu ý: Code s? d?ng dúng tên phuong th?c b?n yêu c?u. Không có m?ng, vector hay con tr?. Phí d? xe áp d?ng h? s? cao di?m/th?p di?m theo gi? vào bãi cho hai gi? d?u tiên.
