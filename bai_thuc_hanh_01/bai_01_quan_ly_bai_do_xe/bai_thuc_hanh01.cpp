@@ -1,11 +1,3 @@
-Mình dã hi?u yêu c?u: vi?t l?i toàn b? chuong trình theo dúng tên l?p, tên thu?c tính và tên phuong th?c b?n v?a dua ra; xóa toàn b? ghi chú trong code, không dùng m?ng, vector hay con tr?.
-
-Du?i dây là code hoàn ch?nh, g?m 3 l?p `phuong_tien`, `bai_xe`, `SystemInterface` và d? 9 ch?c nang.
-
-cpp
-
-```cpp
-
 #include <iostream>
 #include <string>
 #include <iomanip>
@@ -696,4 +688,4 @@ int main() {
 }
 ```
 
-Luu ý: Code s? d?ng dúng tên phuong th?c b?n yêu c?u. Không có m?ng, vector hay con tr?. Phí d? xe áp d?ng h? s? cao di?m/th?p di?m theo gi? vào bãi cho hai gi? d?u tiên.
+Luu Ã½: Code s? d?ng dÃºng tÃªn phuong th?c b?n yÃªu c?u. KhÃ´ng cÃ³ m?ng, vector hay con tr?. PhÃ­ d? xe Ã¡p d?ng h? s? cao di?m/th?p di?m theo gi? vÃ o bÃ£i cho hai gi? d?u tiÃªn.
