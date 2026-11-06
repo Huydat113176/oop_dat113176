@@ -1,0 +1,562 @@
+
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <cstdlib>
+#include <ctime>
+#include <limits>
+using namespace std;
+
+class Vehicle {
+private:
+    int vehicleID;
+    string vehicleType;
+    int entryTime;
+    int parkingDuration;
+    double parkingFee;
+
+public:
+    Vehicle() {
+        vehicleID = 0;
+        vehicleType = "";
+        entryTime = 0;
+        parkingDuration = 0;
+        parkingFee = 0;
+    }
+
+    Vehicle(int id, string type, int time, int duration) {
+        vehicleID = id;
+        vehicleType = type;
+        entryTime = time;
+        parkingDuration = duration;
+        parkingFee = calculateFee();
+    }
+
+    int getVehicleID() const {
+        return vehicleID;
+    }
+
+    string getVehicleType() const {
+        return vehicleType;
+    }
+
+    int getEntryTime() const {
+        return entryTime;
+    }
+
+    int getParkingDuration() const {
+        return parkingDuration;
+    }
+
+    double getParkingFee() const {
+        return parkingFee;
+    }
+
+    void setVehicleID(int id) {
+        vehicleID = id;
+    }
+
+    void setVehicleType(string type) {
+        vehicleType = type;
+        parkingFee = calculateFee();
+    }
+
+    void setEntryTime(int time) {
+        entryTime = time;
+        parkingFee = calculateFee();
+    }
+
+    void setParkingDuration(int duration) {
+        parkingDuration = duration;
+        parkingFee = calculateFee();
+    }
+
+    double calculateFee() const {
+        double price;
+
+        if (vehicleType == "Car")
+            price = 6.0;
+        else if (vehicleType == "Motorcycle")
+            price = 4.0;
+        else
+            price = 2.0;
+
+        bool peak =
+            (entryTime >= 6 && entryTime <= 9) ||
+            (entryTime >= 15 && entryTime <= 18);
+
+        double total = 0;
+
+        for (int i = 0; i < parkingDuration; i++) {
+            if (i < 2)
+                total += price * (peak ? 1.30 : 0.95);
+            else
+                total += price * 0.90;
+        }
+
+        return total;
+    }
+
+    void display() const {
+        cout << "ID: " << vehicleID
+             << " | Loai xe: " << vehicleType
+             << " | Gio vao: " << entryTime
+             << "h | Thoi gian: " << parkingDuration
+             << "h | Phi: $"
+             << fixed << setprecision(2)
+             << parkingFee << endl;
+    }
+};
+
+class ParkingLot {
+private:
+    int parkID;
+    char size;
+    static const int MAX_VEHICLES = 3;
+    Vehicle vehicles[MAX_VEHICLES];
+    int currentVehicleCount;
+
+public:
+    ParkingLot() {
+        parkID = 0;
+        size = 'S';
+        currentVehicleCount = 0;
+    }
+
+    ParkingLot(int id, char s) {
+        parkID = id;
+        size = s;
+        currentVehicleCount = 0;
+    }
+
+    int getParkID() const {
+        return parkID;
+    }
+
+    int getCurrentVehicleCount() const {
+        return currentVehicleCount;
+    }
+
+    int getCapacity() const {
+        if (size == 'S') return 1;
+        if (size == 'M') return 2;
+        return 3;
+    }
+
+    bool isFull() const {
+        return currentVehicleCount >= getCapacity();
+    }
+
+    int findVehicleIndex(int id) const {
+        for (int i = 0; i < currentVehicleCount; i++) {
+            if (vehicles[i].getVehicleID() == id)
+                return i;
+        }
+
+        return -1;
+    }
+
+    bool addVehicle(const Vehicle& v) {
+        if (isFull())
+            return false;
+
+        vehicles[currentVehicleCount] = v;
+        currentVehicleCount++;
+
+        return true;
+    }
+
+    bool removeVehicle(int id) {
+        int index = findVehicleIndex(id);
+
+        if (index == -1)
+            return false;
+
+        for (int i = index; i < currentVehicleCount - 1; i++) {
+            vehicles[i] = vehicles[i + 1];
+        }
+
+        currentVehicleCount--;
+
+        return true;
+    }
+
+    void displayLotInfo() const {
+        cout << "\nBai do: " << parkID
+             << " [" << size << "] "
+             << currentVehicleCount << "/"
+             << getCapacity() << " xe\n";
+
+        for (int i = 0; i < currentVehicleCount; i++) {
+            vehicles[i].display();
+        }
+    }
+
+    void displayVehiclesByType(string type) const {
+        for (int i = 0; i < currentVehicleCount; i++) {
+            if (vehicles[i].getVehicleType() == type) {
+                vehicles[i].display();
+            }
+        }
+    }
+
+    void getTypeSummary(string type, int& count, double& total) const {
+        count = 0;
+        total = 0;
+
+        for (int i = 0; i < currentVehicleCount; i++) {
+            if (vehicles[i].getVehicleType() == type) {
+                count++;
+                total += vehicles[i].getParkingFee();
+            }
+        }
+    }
+};
+
+class SystemInterface {
+private:
+    static const int MAX_LOTS = 10;
+    ParkingLot parkingLots[MAX_LOTS];
+    int currentLotCount;
+
+    int findLotIndex(int id) const {
+        for (int i = 0; i < currentLotCount; i++) {
+            if (parkingLots[i].getParkID() == id)
+                return i;
+        }
+
+        return -1;
+    }
+
+public:
+    SystemInterface() {
+        currentLotCount = 0;
+    }
+
+    bool isParkIDExists(int id) const {
+        return findLotIndex(id) != -1;
+    }
+
+    bool isVehicleIDExists(int id) const {
+        for (int i = 0; i < currentLotCount; i++) {
+            if (parkingLots[i].findVehicleIndex(id) != -1)
+                return true;
+        }
+
+        return false;
+    }
+
+    int generateRandomID() {
+        return 100000 + rand() % 900000;
+    }
+
+    int generateUniqueParkID() {
+        int id;
+
+        do {
+            id = generateRandomID();
+        } while (isParkIDExists(id));
+
+        return id;
+    }
+
+    int generateUniqueVehicleID() {
+        int id;
+
+        do {
+            id = generateRandomID();
+        } while (isVehicleIDExists(id));
+
+        return id;
+    }
+
+    int inputInt(string message) {
+        int x;
+
+        while (true) {
+            cout << message;
+            cin >> x;
+
+            if (cin.fail()) {
+                cout << "Du lieu khong hop le! Nhap lai.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            } else {
+                return x;
+            }
+        }
+    }
+
+    void runMenu() {
+        int choice;
+
+        while (true) {
+            cout << "\n========== QUAN LY BAI DO XE ==========\n";
+            cout << "1. Tao bai do xe moi\n";
+            cout << "2. Them xe vao bai do\n";
+            cout << "3. Xoa bai do xe\n";
+            cout << "4. Lay xe ra khoi bai\n";
+            cout << "5. Hien thi tat ca bai do\n";
+            cout << "6. Hien thi xe theo bai\n";
+            cout << "7. Liet ke xe theo loai\n";
+            cout << "8. Bao cao phi do xe trung binh\n";
+            cout << "9. Thoat\n";
+
+            choice = inputInt("Chon chuc nang: ");
+
+            switch (choice) {
+                case 1: {
+                    if (currentLotCount >= MAX_LOTS) {
+                        cout << "He thong da day bai do!\n";
+                        break;
+                    }
+
+                    int id = inputInt("Nhap ma bai: ");
+
+                    if (isParkIDExists(id)) {
+                        cout << "Ma bai bi trung! Tu dong tao ma moi.\n";
+                        id = generateUniqueParkID();
+                        cout << "Ma bai moi: " << id << endl;
+                    }
+
+                    char s;
+
+                    while (true) {
+                        cout << "Kich thuoc (S/M/L): ";
+                        cin >> s;
+
+                        if (s == 'S' || s == 'M' || s == 'L')
+                            break;
+
+                        cout << "Kich thuoc khong hop le!\n";
+                    }
+
+                    parkingLots[currentLotCount] = ParkingLot(id, s);
+                    currentLotCount++;
+
+                    cout << "Tao bai do thanh cong!\n";
+                    break;
+                }
+
+                case 2: {
+                    if (currentLotCount == 0) {
+                        cout << "Chua co bai do nao!\n";
+                        break;
+                    }
+
+                    int id = inputInt("Nhap ma xe: ");
+
+                    if (isVehicleIDExists(id)) {
+                        cout << "Ma xe bi trung! Tu dong tao ma moi.\n";
+                        id = generateUniqueVehicleID();
+                        cout << "Ma xe moi: " << id << endl;
+                    }
+
+                    string type;
+
+                    while (true) {
+                        cout << "Loai xe (Car/Motorcycle/Bicycle): ";
+                        cin >> type;
+
+                        if (type == "Car" || type == "Motorcycle" || type == "Bicycle")
+                            break;
+
+                        cout << "Loai xe khong hop le!\n";
+                    }
+
+                    int time;
+
+                    while (true) {
+                        time = inputInt("Gio vao (0-23): ");
+
+                        if (time >= 0 && time <= 23)
+                            break;
+
+                        cout << "Gio vao khong hop le!\n";
+                    }
+
+                    int duration;
+
+                    while (true) {
+                        duration = inputInt("Thoi gian do (1-23): ");
+
+                        if (duration >= 1 && duration <= 23)
+                            break;
+
+                        cout << "Thoi gian do khong hop le!\n";
+                    }
+
+                    Vehicle v(id, type, time, duration);
+                    bool success = false;
+
+                    for (int i = 0; i < currentLotCount; i++) {
+                        if (parkingLots[i].addVehicle(v)) {
+                            success = true;
+                            cout << "Da them xe vao bai "
+                                 << parkingLots[i].getParkID() << endl;
+                            break;
+                        }
+                    }
+
+                    if (success) {
+                        cout << "Phi gui xe: $"
+                             << fixed << setprecision(2)
+                             << v.getParkingFee() << endl;
+                    } else {
+                        cout << "Tat ca bai do da day!\n";
+                    }
+
+                    break;
+                }
+
+                case 3: {
+                    int id = inputInt("Nhap ma bai can xoa: ");
+                    int index = findLotIndex(id);
+
+                    if (index == -1) {
+                        cout << "Khong tim thay bai do!\n";
+                        break;
+                    }
+
+                    for (int i = index; i < currentLotCount - 1; i++) {
+                        parkingLots[i] = parkingLots[i + 1];
+                    }
+
+                    currentLotCount--;
+
+                    cout << "Xoa bai do thanh cong!\n";
+                    break;
+                }
+
+                case 4: {
+                    int id = inputInt("Nhap ma xe can lay ra: ");
+                    bool success = false;
+
+                    for (int i = 0; i < currentLotCount; i++) {
+                        if (parkingLots[i].removeVehicle(id)) {
+                            success = true;
+                            break;
+                        }
+                    }
+
+                    if (success)
+                        cout << "Lay xe ra thanh cong!\n";
+                    else
+                        cout << "Khong tim thay xe!\n";
+
+                    break;
+                }
+
+                case 5: {
+                    if (currentLotCount == 0) {
+                        cout << "He thong chua co bai do!\n";
+                        break;
+                    }
+
+                    for (int i = 0; i < currentLotCount; i++) {
+                        parkingLots[i].displayLotInfo();
+                    }
+
+                    break;
+                }
+
+                case 6: {
+                    int id = inputInt("Nhap ma bai: ");
+                    int index = findLotIndex(id);
+
+                    if (index == -1)
+                        cout << "Khong tim thay bai do!\n";
+                    else
+                        parkingLots[index].displayLotInfo();
+
+                    break;
+                }
+
+                case 7: {
+                    string type;
+
+                    cout << "Nhap loai xe: ";
+                    cin >> type;
+
+                    if (type != "Car" && type != "Motorcycle" && type != "Bicycle") {
+                        cout << "Loai xe khong hop le!\n";
+                        break;
+                    }
+
+                    bool found = false;
+
+                    for (int i = 0; i < currentLotCount; i++) {
+                        int count;
+                        double total;
+
+                        parkingLots[i].getTypeSummary(type, count, total);
+
+                        if (count > 0) {
+                            cout << "\nBai " << parkingLots[i].getParkID() << ":\n";
+                            parkingLots[i].displayVehiclesByType(type);
+                            found = true;
+                        }
+                    }
+
+                    if (!found)
+                        cout << "Khong co xe thuoc loai nay!\n";
+
+                    break;
+                }
+
+                case 8: {
+                    string types[3] = {"Car", "Motorcycle", "Bicycle"};
+
+                    for (int t = 0; t < 3; t++) {
+                        int totalCount = 0;
+                        double totalFee = 0;
+
+                        cout << "\nLoai xe: " << types[t] << endl;
+
+                        for (int i = 0; i < currentLotCount; i++) {
+                            int count;
+                            double fee;
+
+                            parkingLots[i].getTypeSummary(types[t], count, fee);
+
+                            if (count > 0) {
+                                cout << "Bai " << parkingLots[i].getParkID()
+                                     << ": " << count << " xe | Tong phi: $"
+                                     << fixed << setprecision(2) << fee << endl;
+                            }
+
+                            totalCount += count;
+                            totalFee += fee;
+                        }
+
+                        if (totalCount == 0) {
+                            cout << "Khong co xe!\n";
+                        } else {
+                            cout << "Tong so xe: " << totalCount << endl;
+                            cout << "Phi trung binh: $"
+                                 << fixed << setprecision(2)
+                                 << totalFee / totalCount << endl;
+                        }
+                    }
+
+                    break;
+                }
+
+                case 9:
+                    cout << "Thoat chuong trinh!\n";
+                    return;
+
+                default:
+                    cout << "Lua chon khong hop le!\n";
+            }
+        }
+    }
+};
+int main() {
+    srand(time(0));
+
+    SystemInterface system;
+    system.runMenu();
+
+    return 0;
+}
